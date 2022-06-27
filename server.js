@@ -54,9 +54,9 @@ app.post('/buyers', (req, res) => {
 /*
 {
     "tags": [],
-    "buyer_id": 1,
-    "base_price": 0,
-    "max_duration": 5,
+    "buyerId": 1,
+    "basePrice": 0,
+    "maxDuration": 5,
     "item": {}
 }
 */
@@ -81,12 +81,12 @@ app.post('/bids', (req, res) => {
 /*
 [
     {
-        "auction_id": 1,
+        "auctionId": 1,
         "tags": [],
-        "current_price": 0,
-        "buyer_id": -1,
-        "auction_start": "2022/06/26 23:59:59.000",
-        "auction_close": "2022/06/27 00:04:59.000",
+        "currentPrice": 0,
+        "buyerId": -1,
+        "auctionStart": "2022/06/26 23:59:59.000",
+        "auctionClose": "2022/06/27 00:04:59.000",
         "active": true,
         "item": {}
     }
@@ -102,9 +102,9 @@ app.get('/auctions', (req, res) => {
 
 /*
 {
-    "auction_id": 1,
-    "offer_price": 0,
-    "buyer_id": 1
+    "auctionId": 1,
+    "offerPrice": 0,
+    "buyerId": 1
 }
 */
 app.post('/offer', (req, res) => {
@@ -121,9 +121,9 @@ app.post('/offer', (req, res) => {
 
 /*
 {
-    "auction_id": 1,
-    "final_price": 100,
-    "buyer_id": 1,
+    "auctionId": 1,
+    "finalPrice": 100,
+    "buyerId": 1,
     "item": {}
 }
 */
