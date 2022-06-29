@@ -4,7 +4,7 @@ import { createServer } from "http";
 import { io as ioClient } from "socket.io-client";
 const randomId = () => randomBytes(8).toString("hex");
 
-import { createLoggerForService } from "../logger.js";
+import { createLoggerForService } from "../model/logger.js";
 
 const logger = createLoggerForService("client");
 
