@@ -5,11 +5,12 @@ import { io as ioClient } from "socket.io-client";
 const randomId = () => randomBytes(8).toString("hex");
 
 import { createLoggerForService } from "../model/logger.js";
+import { Buyer } from "../model/model.js";
 
 const logger = createLoggerForService("client");
 
 var currentAuctions = new Map();
-
+var buyer = new Buyer();
 const app = express();
 // Use arg as port for connections, if not present then use 8080 as default.
 const server = createServer(app).listen(process.argv[2] || 8080);
@@ -38,11 +39,9 @@ socket.on("auctionBidModification", (auction) => {
   currentAuctions.set(auction.id, auction);
 });
 
-socket.on("buyerInfo", () => {
+socket.on("buyerInfo", (buyer) => {
   //Sending buyer info to the orchestrator.
-  var buyerId = randomId();
-  var tags = ["tag1", "tag2"];
-  socket.emit("buyerInfo", { buyerId, tags });
+  console.log(buyer)
 });
 
 //socket.emit("doBid", {auctionId, bid})
@@ -58,9 +57,13 @@ app.use(json());
     ]
 } */
 app.post("/buyers", (req, res) => {
-  var buyer = req.body;
-  socket.emit("buyerInfo", buyer)
-  res.json(req.body);
+
+  socket.emit("buyerInfo", req.body, (response) => {
+    console.log(response)
+    buyer = response;
+    res.json(response);
+  })
+
 });
 
 
@@ -76,7 +79,7 @@ app.post("/buyers", (req, res) => {
 app.post("/bids", (req, res) => {
   var auction = req.body;
   socket.emit("auctionCreationRequest", auction)
-  res.status(201);
+  res.sendStatus(201);
 });
 
 
@@ -90,7 +93,7 @@ app.post("/bids", (req, res) => {
 app.post("/offer", (req, res) => {
   var offer = req.body;
   socket.emit("auctionBidPlaced", offer)
-  res.send(202);
+  res.sendStatus(202);
 });
 
 
