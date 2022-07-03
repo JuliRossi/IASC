@@ -1,9 +1,10 @@
 import pkg from 'lodash';
+
 const { _ } = pkg;
 
 export function getTagsFromBuyerId(buyerId, buyers){
     console.log(buyers);
-    var client = _.find(buyers, {'buyerId':buyerId});
+    const client = _.find(buyers, {'buyerId': buyerId});
     console.log(client);
     return client.tags;
 }
@@ -21,15 +22,14 @@ export function getAuctionFromAuctionId(auctionId, auctions) {
 }
 
 export function getAuctionWinnerFromAuctionId(auctionId, auctions) {
-    var auction = getAuctionFromAuctionId(auctionId, auctions);
+    const auction = getAuctionFromAuctionId(auctionId, auctions);
     if(!auction.active){
-        var auctionWinner = {
-            auctionId : auction.auctionId,
-            finalPrice : auction.currentPrice,
-            buyerId : auction.buyerId,
-            item : auction.item,
+        return {
+            auctionId: auction.auctionId,
+            finalPrice: auction.currentPrice,
+            buyerId: auction.buyerId,
+            item: auction.item,
         }
-        return auctionWinner
     }
     return "auction is still active";
 }

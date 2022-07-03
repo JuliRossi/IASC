@@ -1,45 +1,51 @@
 import { randomBytes } from "crypto";
-import express, { json } from "express";
-import { createServer } from "http";
 import { io as ioClient } from "socket.io-client";
-const randomId = () => randomBytes(8).toString("hex");
-
 import { createLoggerForService } from "../model/logger.js";
-import { Buyer } from "../model/model.js";
 
+const randomId = () => randomBytes(8).toString("hex");
 const logger = createLoggerForService("");
 
-
-const socket = ioClient("http://localhost:8080", {
+const clientSocket = ioClient("http://localhost:8080", {
   auth: { port, host, clientId: 124 },
   autoConnect: true,
 });
 
-socket.onAny((event, ...args) => {
+clientSocket.onAny((event, ...args) => {
   console.log(event, args);
 });
 
-socket.on("auction", (auction) => {
+clientSocket.on("auction", (auction) => {
   console.log("New auction received, showing it now.");
   console.log(auction);
-  currentAuctions.set(auction.id, auction);
+  currentAuctions.set(auction.id, auction); //TODO: define this
 });
 
-socket.on("auctionBidModification", (auction) => {
+clientSocket.on("auctionBidModification", (auction) => {
   console.log("Auction has new bid, showing it: ");
   console.log(auction);
-  currentAuctions.set(auction.id, auction);
+  currentAuctions.set(auction.id, auction); //TODO: define this
 });
 
-socket.on("buyerInfo", (buyer) => {
+clientSocket.on("buyerInfo", (buyer) => {
   //Sending buyer info to the orchestrator.
   console.log(buyer)
 });
 
+export function emitBuyer(buyerInfo) {
+  clientSocket.emit("buyerInfo", buyerInfo, (response) => {
+    console.log(response)
+  })
+}
+
+export function emitAuction(auction) {
+  clientSocket.emit("auctionCreationRequest", auction)
+}
+
+export function emitOffer(offer){
+  clientSocket.emit("auctionBidPlaced", offer)
+}
+
 //socket.emit("doBid", {auctionId, bid})
 
-
-
-export default {socket}
 
 

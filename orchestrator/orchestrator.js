@@ -1,9 +1,8 @@
 import { randomBytes } from "crypto";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { Node } from "../model.js";
-
 import { createLoggerForService } from "../model/logger.js";
+import Nodo from "../model/nodo.js";
 
 const logger = createLoggerForService("orchestrator");
 // Use arg as port for connections, if not present then use 8080 as default.
@@ -92,11 +91,11 @@ function manageClientConnection(socket) {
 
 function manageServerConnection(socket) {
   // 1) New node connected to the orchestrator, so we tell the rest of it and we save it on our node list.
-  var newNode = new Node(
-    socket.nodeId,
-    "Node" + socket.handshake.auth.port,
-    socket.handshake.auth.host,
-    socket.handshake.auth.port
+  const newNode = new Nodo(
+      socket.nodeId,
+      "Node" + socket.handshake.auth.port,
+      socket.handshake.auth.host,
+      socket.handshake.auth.port
   );
 
   //We send the Node object to the socket to let the server know which one is him.

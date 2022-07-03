@@ -1,62 +1,41 @@
+import express, {json} from "express";
+import {createServer} from "http";
+import Buyer from "../model/buyer.js";
+import {emitAuction, emitBuyer, emitOffer} from "./client.js";
 
 const logger = createLoggerForService("client");
 
-var currentAuctions = new Map();
-var buyer = new Buyer();
 const app = express();
 // Use arg as port for connections, if not present then use 8080 as default.
 const server = createServer(app).listen(process.argv[2] || 8080);
 
-var port = process.argv[2];
-var host = "http://localhost:" + port;
-
+const port = process.argv[2];
+const host = "http://localhost:" + port;
 
 app.use(json());
-/*
-{
-    "name": "something",
-    "ip":"127.0.0.1:3001",
-    "tags":[
-        "watches",
-        "electronics"
-    ]
-} */
+
+//CreateBuyer o RegisterBuyer
 app.post("/buyers", (req, res) => {
-
-  socket.emit("buyerInfo", req.body, (response) => {
-    console.log(response)
-    buyer = response;
-    res.json(response);
-  })
-
+    emitBuyer(req.body)
+    res.sendStatus(200)
+    //TODO: Ask Nico
+    /*
+        socket.emit("buyerInfo", req.body, (serverSocketResponse) => {
+            console.log(serverSocketResponse)
+            buyer = serverSocketResponse;
+            res.json(serverSocketResponse);
+        })
+    */
 });
 
-
-/*
-{
-    "tags": [],
-    "buyerId": 1,
-    "basePrice": 0,
-    "maxDuration": 5,
-    "item": {}
-}
-*/
+//CreateAuction
 app.post("/bids", (req, res) => {
-  var auction = req.body;
-  socket.emit("auctionCreationRequest", auction)
-  res.sendStatus(201);
+    emitAuction(req.body)
+    res.sendStatus(200);
 });
 
-
-/*
-{
-    "auctionId": 1,
-    "offerPrice": 0,
-    "buyerId": 1
-}
-*/
+//CreateOffer
 app.post("/offer", (req, res) => {
-  var offer = req.body;
-  socket.emit("auctionBidPlaced", offer)
-  res.sendStatus(202);
+    emitOffer(req.body)
+    res.sendStatus(200);
 });
