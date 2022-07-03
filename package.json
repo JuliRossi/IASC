@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "express": "^4.18.1",
+    "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
+    "winston": "^3.8.1"
+  },
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "name": "iasc",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuliRossi/IASC.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JuliRossi/IASC/issues"
+  },
+  "homepage": "https://github.com/JuliRossi/IASC#readme",
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0"
+  },
+  "type": "module"
+}

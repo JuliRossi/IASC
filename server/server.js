@@ -4,7 +4,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { io as ioClient } from "socket.io-client";
 import { createLoggerForService } from "../model/logger.js";
-import { Node } from "../model.js";
+import { Node } from "../model/model.js";
 import { Buyer } from "../model/model.js";
 const logger = createLoggerForService("server");
 // Use arg as port for connections, if not present then use 8080 as default.
