@@ -31,28 +31,21 @@ clientSocket.on("auctionBidModification", (auction) => {
 
 clientSocket.on("buyerInfo", (buyer) => {
   //Sending buyer info to the orchestrator.
-  console.log(buyer)
+  console.log(buyer);
 });
 
-export async function emitBuyer(buyerInfo){
-  let res
+export async function emitBuyer(buyerInfo, res) {
   clientSocket.emit("buyerInfo", buyerInfo, (response) => {
-    console.log(response)
-    res = response
-  })
-  return res
-
+    res.json(response);
+  });
 }
 
 export function emitAuction(auction) {
-  clientSocket.emit("auctionCreationRequest", auction)
+  clientSocket.emit("auctionCreationRequest", auction);
 }
 
-export function emitOffer(offer){
-  clientSocket.emit("auctionBidPlaced", offer)
+export function emitOffer(offer) {
+  clientSocket.emit("auctionBidPlaced", offer);
 }
 
 //socket.emit("doBid", {auctionId, bid})
-
-
-

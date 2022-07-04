@@ -17,8 +17,9 @@ app.use(json());
 
 //CreateBuyer o RegisterBuyer
 app.post("/buyers", (req, res) => {
-    emitBuyer(req.body)
-    res.sendStatus(200)
+    emitBuyer(req.body, res)
+    
+    console.log(res)
     //TODO: Ask Nico
     /*
         socket.emit("buyerInfo", req.body, (serverSocketResponse) => {
