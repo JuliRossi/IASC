@@ -34,7 +34,7 @@ clientSocket.on("buyerInfo", (buyer) => {
   console.log(buyer);
 });
 
-export async function emitBuyer(buyerInfo, res) {
+export function emitBuyer(buyerInfo, res) {
   clientSocket.emit("buyerInfo", buyerInfo, (response) => {
     res.json(response);
   });
