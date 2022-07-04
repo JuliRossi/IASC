@@ -4,6 +4,9 @@ import { createLoggerForService } from "../model/logger.js";
 
 const randomId = () => randomBytes(8).toString("hex");
 const logger = createLoggerForService("");
+const currentAuctions = new Map();
+const port = process.argv[2];
+const host = "http://localhost:" + port;
 
 const clientSocket = ioClient("http://localhost:8080", {
   auth: { port, host, clientId: 124 },
@@ -17,13 +20,13 @@ clientSocket.onAny((event, ...args) => {
 clientSocket.on("auction", (auction) => {
   console.log("New auction received, showing it now.");
   console.log(auction);
-  currentAuctions.set(auction.id, auction); //TODO: define this
+  currentAuctions.set(auction.id, auction);
 });
 
 clientSocket.on("auctionBidModification", (auction) => {
   console.log("Auction has new bid, showing it: ");
   console.log(auction);
-  currentAuctions.set(auction.id, auction); //TODO: define this
+  currentAuctions.set(auction.id, auction);
 });
 
 clientSocket.on("buyerInfo", (buyer) => {
@@ -31,10 +34,14 @@ clientSocket.on("buyerInfo", (buyer) => {
   console.log(buyer)
 });
 
-export function emitBuyer(buyerInfo) {
+export async function emitBuyer(buyerInfo){
+  let res
   clientSocket.emit("buyerInfo", buyerInfo, (response) => {
     console.log(response)
+    res = response
   })
+  return res
+
 }
 
 export function emitAuction(auction) {

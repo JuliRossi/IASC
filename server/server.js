@@ -10,7 +10,7 @@ import Nodo from "../model/nodo.js";
 
 const logger = createLoggerForService("server");
 // Use arg as port for connections, if not present then use 8080 as default.
-const server = createServer().listen(process.argv[2] || 8080);
+const server = createServer().listen(process.argv[2] || 8083);
 const io = new Server(server, {});
 const randomId = () => randomBytes(8).toString("hex");
 

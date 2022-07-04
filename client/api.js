@@ -2,6 +2,7 @@ import express, {json} from "express";
 import {createServer} from "http";
 import Buyer from "../model/buyer.js";
 import {emitAuction, emitBuyer, emitOffer} from "./client.js";
+import {createLoggerForService} from "../model/logger.js";
 
 const logger = createLoggerForService("client");
 
@@ -11,8 +12,8 @@ const server = createServer(app).listen(process.argv[2] || 8080);
 
 const port = process.argv[2];
 const host = "http://localhost:" + port;
-
 app.use(json());
+
 
 //CreateBuyer o RegisterBuyer
 app.post("/buyers", (req, res) => {

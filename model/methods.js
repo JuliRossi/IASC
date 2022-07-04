@@ -1,6 +1,5 @@
 import pkg from 'lodash';
-
-const { _ } = pkg;
+import _ from "lodash";
 
 export function getTagsFromBuyerId(buyerId, buyers){
     console.log(buyers);

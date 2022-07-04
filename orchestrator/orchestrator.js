@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { createLoggerForService } from "../model/logger.js";
 import Nodo from "../model/nodo.js";
+import Buyer from "../model/buyer.js";
 
 const logger = createLoggerForService("orchestrator");
 // Use arg as port for connections, if not present then use 8080 as default.
@@ -72,11 +73,13 @@ function addBuyerToServers(buyerInfo) {
 }
 
 function manageNewBuyer(socket) {
-  socket.on("buyerInfo", (buyerInfo) => {
-    logger.info("¡We have a new buyer now! ID: " + buyerInfo.buyerId);
+  socket.on("buyerInfo", (buyerInfo, callback) => {
+    const newBuyer = new Buyer(randomId(), buyerInfo.name, buyerInfo.tags);
+    logger.info("¡We have a new buyer now! ID: " + newBuyer.id);
     addBuyerToRooms(buyerInfo, socket);
     addBuyerToServers(buyerInfo);
     //TODO add the logic for sending the existing auctions to new buyers
+    callback(newBuyer);
   });
 }
 
