@@ -48,21 +48,8 @@ socket.on("checkPreviousExistence", () => {
 });
 
 socket.on("auctionCreationRequest", (auction) => {
-  const now = new Date();
-  const newAuction = new Auction(
-    randomId(),
-    auction.tags,
-    parseInt(auction.basePrice),
-    buyers.get(auction.buyerId),
-    now,
-    new Date(now.getMinutes + parseInt(auction.maxDuration)),
-    true,
-    auction.item
-  );
-
-  auctions.set(newAuction.id, newAuction);
-
-  logger.info("New auction stored. ID: " + newAuction.id);
+  auctions.set(auction.id, auction);
+  logger.info("New auction stored. ID: " + auction.id);
 });
 
 socket.on("auctionBidPlaced", (offer) => {

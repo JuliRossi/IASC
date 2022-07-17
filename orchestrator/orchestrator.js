@@ -10,7 +10,7 @@ const logger = createLoggerForService("orchestrator");
 const server = createServer().listen(process.argv[2] || 8080);
 const io = new Server(server, {});
 
-const nodes = new Map();
+const servers = new Map();
 const serverRooms = new Map();
 const tagRooms = new Map();
 const defaultRoom = "room";
@@ -38,7 +38,20 @@ io.on("connection", (socket) => {
 function manageAuctions(socket) {
   socket.on("auctionCreationRequest", (auction) => {
     //Decide which servers will store this specific auction.
-    io.to(defaultRoom).emit("auctionCreationRequest", auction);
+
+    const now = new Date();
+    const newAuction = new Auction(
+      randomId(),
+      auction.tags,
+      parseInt(auction.basePrice),
+      buyers.get(auction.buyerId),
+      now,
+      new Date(now.getMinutes + parseInt(auction.maxDuration)),
+      true,
+      auction.item
+    );
+
+    io.to(defaultRoom).emit("auctionCreationRequest", newAuction);
   });
 
   socket.on("auctionCreated", (auction) => {
@@ -154,13 +167,13 @@ function manageServerConnection(socket) {
     socket.emit("self", nodeConnected);
   });
 
-  nodes.set(nodeConnected.id, nodeConnected);
+  servers.set(nodeConnected.id, nodeConnected);
 
   addToRoom(socket, nodeConnected);
 
   socket.on("disconnect", () => {
     logger.info(`Node ${socket.nodeId} disconnected.`);
-    nodes.delete(socket.nodeId);
+    servers.delete(socket.nodeId);
   });
 }
 
@@ -182,7 +195,7 @@ io.use((socket, next) => {
 
   //This is kind of a reconnect tool, when the socket disconnects and reconnects the orchestrator will know that it is the same. This means the server still has all his data.
   if (nodeId) {
-    const node = nodes.get(nodeId);
+    const node = servers.get(nodeId);
     if (node) {
       socket.nodeId = nodeId;
       return next();
