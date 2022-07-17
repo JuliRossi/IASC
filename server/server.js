@@ -19,7 +19,10 @@ const host = "http://localhost:" + port;
 const buyers = new Map();
 let self = new Nodo();
 let auctions = new Map();
-const socket = ioClient("http://localhost:8080", {
+
+const orchestratorHost = process.argv[2] ? "http://localhost:8080" : "http://orchestrator:8080"
+
+const socket = ioClient(orchestratorHost, {
     auth: {port, host},
     autoConnect: true,
 });

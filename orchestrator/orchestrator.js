@@ -27,6 +27,10 @@ io.on("connection", (socket) => {
   }
   manageAuctionBids(socket);
   manageAuctions(socket);
+
+  socket.onAny((event, ...args) => {
+    logger.info(event, args);
+  });
 });
 
 function manageAuctions(socket) {
@@ -54,6 +58,8 @@ function manageAuctionBids(socket) {
     //TODO update the specific rooms related to that auction.
     io.to(defaultRoom).emit("auctionBidPlaced", auctionBid);
   });
+
+
 }
 
 function addBuyerToRooms(buyerInfo, socket) {
