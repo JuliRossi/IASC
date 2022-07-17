@@ -1,16 +1,16 @@
 import { randomBytes } from "crypto";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import Buyer from "../model/buyer.js";
 import { createLoggerForService } from "../model/logger.js";
 import Nodo from "../model/nodo.js";
-import Buyer from "../model/buyer.js";
 
 const logger = createLoggerForService("orchestrator");
 // Use arg as port for connections, if not present then use 8080 as default.
 const server = createServer().listen(process.argv[2] || 8080);
 const io = new Server(server, {});
 
-const nodes = new Map();
+const servers = new Map();
 const serverRooms = new Map();
 const tagRooms = new Map();
 const defaultRoom = "room";
@@ -29,10 +29,29 @@ io.on("connection", (socket) => {
   manageAuctions(socket);
 });
 
+/**
+ * Expects messages from client or servers, process them and broadcast
+ * to specific rooms.
+ * 
+ * @param  socket
+ */
 function manageAuctions(socket) {
   socket.on("auctionCreationRequest", (auction) => {
     //Decide which servers will store this specific auction.
-    io.to(defaultRoom).emit("auctionCreationRequest", auction);
+
+    const now = new Date();
+    const newAuction = new Auction(
+      randomId(),
+      auction.tags,
+      parseInt(auction.basePrice),
+      buyers.get(auction.buyerId),
+      now,
+      new Date(now.getMinutes + parseInt(auction.maxDuration)),
+      true,
+      auction.item
+    );
+
+    io.to(defaultRoom).emit("auctionCreationRequest", newAuction);
   });
 
   socket.on("auctionCreated", (auction) => {
@@ -42,9 +61,16 @@ function manageAuctions(socket) {
     });
   });
 }
+
+/**
+ * Expects a new bid or a modification in one of the auctions to
+ * send that information to clients or servers.
+ *
+ * @param socket - represents a server socket
+ */
 function manageAuctionBids(socket) {
   socket.on("auctionBidModification", (auction) => {
-    logger.info(auction);
+    logger.info(`Received modification for auction ${auction.id}`);
     auction.tags.forEach((tag) => {
       io.to(tag).emit("auctionBidModification", auction);
     });
@@ -56,6 +82,12 @@ function manageAuctionBids(socket) {
   });
 }
 
+/**
+ * Adds the buyer specific socket to rooms based on its tags.
+ *
+ * @param buyerInfo - buyerInfo is a buyer object
+ * @param socket - client socket that will receive the auctions updates
+ */
 function addBuyerToRooms(buyerInfo, socket) {
   buyerInfo.tags.forEach((element) => {
     if (tagRooms.has(element)) {
@@ -68,14 +100,26 @@ function addBuyerToRooms(buyerInfo, socket) {
   });
 }
 
+/**
+ * Adds the specific buyer to the servers. (It sends it to them)
+ * Buyers are replicated across all the servers.
+ *
+ * @param buyerInfo  - buyerInfo contains a buyer object
+ */
 function addBuyerToServers(buyerInfo) {
   io.to(defaultRoom).emit("newBuyer", buyerInfo);
 }
 
+/**
+ * Asks the client for the buyer info and using that info a new buyer is generated.
+ * Also sets the buyer rooms and adds it to the servers.
+ * Specific logic for receiving auctions is added here.
+ *  * @param socket - socket that will be used to manage the new buyer
+ */
 function manageNewBuyer(socket) {
   socket.on("buyerInfo", (buyerInfo, callback) => {
     const newBuyer = new Buyer(randomId(), buyerInfo.name, buyerInfo.tags);
-    logger.info("¡We have a new buyer now! ID: " + newBuyer.id);
+    logger.info(`New buyer added to the service, id: ${newBuyer.id}`);
     addBuyerToRooms(buyerInfo, socket);
     addBuyerToServers(buyerInfo);
     //TODO add the logic for sending the existing auctions to new buyers
@@ -83,6 +127,11 @@ function manageNewBuyer(socket) {
   });
 }
 
+/**
+ * Manages the connection of a new client.
+ *
+ * @param socket - socket that will be used to manage the client connection
+ */
 function manageClientConnection(socket) {
   // We derive the management to the specific function.
   manageNewBuyer(socket);
@@ -92,35 +141,48 @@ function manageClientConnection(socket) {
   });
 }
 
+/**
+ * Manages a socket as a server connection, first checks the previous existence of the Node
+ * and then generates the correct values depending on the response.
+ * Also sets the socket to specific rooms and sets a disconnect function.
+ *
+ * @param socket - socket that will be used to manage the server connection
+ */
 function manageServerConnection(socket) {
-  // 1) New node connected to the orchestrator, so we tell the rest of it and we save it on our node list.
-  const newNode = new Nodo(
-      socket.nodeId,
-      "Node" + socket.handshake.auth.port,
-      socket.handshake.auth.host,
-      socket.handshake.auth.port
-  );
+  let nodeConnected = new Nodo();
 
-  //We send the Node object to the socket to let the server know which one is him.
-  socket.emit("self", newNode);
+  socket.emit("checkPreviousExistence");
 
-  // We use broadcast to only send the new node the the previous existing sockets and not the new one
-  socket.broadcast.emit("nodeConnection", newNode);
+  socket.on("existentNode", ({ self, auctions, buyers }) => {
+    logger.info(
+      `Node ${self.id} is reconnecting, processing auctions and buyers.`
+    );
+    nodeConnected = self;
+    //TODO resolve auctions and buyers
+  });
 
-  // We use emit for sending the connected nodes to the new node.
-  socket.emit("nodes", nodes);
+  socket.on("nonExistentNode", ({ port, host }) => {
+    logger.info(`New Node ${socket.nodeId} added to the service.`);
+    nodeConnected = new Nodo(socket.nodeId, "Node" + port, host, port);
+    socket.emit("self", nodeConnected);
+  });
 
-  nodes.set(newNode.id, newNode);
+  servers.set(nodeConnected.id, nodeConnected);
 
-  addToRoom(socket, newNode);
+  addToRoom(socket, nodeConnected);
 
   socket.on("disconnect", () => {
-    console.log("Node disconected:");
-    console.log(nodes.get(socket.nodeId));
-    nodes.delete(socket.nodeId);
+    logger.info(`Node ${socket.nodeId} disconnected.`);
+    servers.delete(socket.nodeId);
   });
 }
 
+/**
+ * Adds the socket to the specific room and also adds the node to the list that relates nodes with rooms.
+ *
+ * @param socket - socket that will be added to the rooms
+ * @param node - object that contains the node information, will be associated with a room
+ */
 function addToRoom(socket, node) {
   //For now there will be only one room that all sockets will be added to.
   serverRooms.get(defaultRoom).push(node);
@@ -133,7 +195,7 @@ io.use((socket, next) => {
 
   //This is kind of a reconnect tool, when the socket disconnects and reconnects the orchestrator will know that it is the same. This means the server still has all his data.
   if (nodeId) {
-    const node = nodes.get(nodeId);
+    const node = servers.get(nodeId);
     if (node) {
       socket.nodeId = nodeId;
       return next();
