@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import Buyer from "../model/buyer.js";
 import { createLoggerForService } from "../model/logger.js";
 import Nodo from "../model/nodo.js";
+import Auction from "../model/auction.js";
 
 const logger = createLoggerForService("orchestrator");
 // Use arg as port for connections, if not present then use 8080 as default.
@@ -14,6 +15,7 @@ const servers = new Map();
 const serverRooms = new Map();
 const tagRooms = new Map();
 const defaultRoom = "room";
+const serversAuctions = new Map();
 
 serverRooms.set(defaultRoom, []);
 
@@ -44,12 +46,14 @@ function manageAuctions(socket) {
       randomId(),
       auction.tags,
       parseInt(auction.basePrice),
-      buyers.get(auction.buyerId),
+      Buyer.get(auction.buyerId),
       now,
       new Date(now.getMinutes + parseInt(auction.maxDuration)),
       true,
       auction.item
     );
+    
+    designateAuction(newAuction);
 
     io.to(defaultRoom).emit("auctionCreationRequest", newAuction);
   });
@@ -205,3 +209,16 @@ io.use((socket, next) => {
   socket.nodeId = randomId();
   return next();
 });
+
+function designateAuction(newAuction){
+  let listServers = new Array();
+  const mapAux = new Map();
+  
+  socket.emit("getAuctions", (response) => {
+    mapAux.set(response); //returns (server id, auctions size)
+  })
+  // sort by value
+  const mapSort = ([...mapAux.entries()].sort((a, b) => a[1] - b[1]));
+  listServers = mapSort.slice(0,3); //take 3 servers less occupied
+  serversAuctions.set(newAuction, listServers)
+}
