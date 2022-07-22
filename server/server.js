@@ -68,3 +68,9 @@ socket.on("newBuyer", (buyerInfo) => {
   buyers.set(newBuyer.id, newBuyer);
   logger.info("Buyer added to the system.");
 });
+
+socket.on("getAuctions", (callback)=>{
+const serverSize = new Array(self.id, auctions.size);
+callback(serverSize);
+});
+
