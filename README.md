@@ -1,10 +1,5 @@
 # IASC
 
-## Como iniciar server.js
-`npm start` o `npm server/server.js`
-
-
-
 ## Ejecución de la solución en Kubernetes
 
 La solución se puede ejecutar en Kubernetes, las pruebas se realizaron utilizando Minikube.
@@ -56,12 +51,23 @@ Para levantar todos los servicios se debe ejecutar:
 kubectl apply -f kube
 ```
 
+## FrontEnd
+
 ## TL;DR
 
-Para levantar la solución teniendo previamente instalado Kubernetes y Minikube los comandos son los siguientes
+Para levantar la solución teniendo previamente instalado Kubernetes y Minikube los comandos son los siguientes para linux:
 
  ```bash
 minikube start
+eval $(minikube docker-env)
+docker build . -t iasc-tp-grupo-3
+kubectl apply -f kube
+minikube service client --url
+```
+
+Para macOS:
+ ```bash
+minikube start --driver=hyperkit
 eval $(minikube docker-env)
 docker build . -t iasc-tp-grupo-3
 kubectl apply -f kube
