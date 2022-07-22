@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
 /**
  * Expects messages from client or servers, process them and broadcast
  * to specific rooms.
- * 
+ *
  * @param  socket
  */
 function manageAuctions(socket) {
@@ -52,7 +52,7 @@ function manageAuctions(socket) {
       true,
       auction.item
     );
-    
+
     designateAuction(newAuction);
 
     io.to(defaultRoom).emit("auctionCreationRequest", newAuction);
@@ -213,7 +213,7 @@ io.use((socket, next) => {
 function designateAuction(newAuction){
   let listServers = new Array();
   const mapAux = new Map();
-  
+
   socket.emit("getAuctions", (response) => {
     mapAux.set(response); //returns (server id, auctions size)
   })
